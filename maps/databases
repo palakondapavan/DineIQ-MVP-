@@ -1,0 +1,31 @@
+staff
+ │
+ ├──────────────┐
+ │              │
+waiter_id    chef_id
+ │              │
+ ▼              ▼
+           orders
+              │
+              ▼
+         order_items
+              │
+              ▼
+         menu_items
+              │
+              ▼
+          categories
+
+
+restaurant_tables
+        │
+        ▼
+customer_sessions
+        │
+        ├──────────► orders
+        │
+        ▼
+      bills
+        │
+        ▼
+     payments

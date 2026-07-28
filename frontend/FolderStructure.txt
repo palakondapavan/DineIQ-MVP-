@@ -1,0 +1,41 @@
+src/
+│
+├── api/
+│   ├── client.ts
+│   ├── customer/
+│   ├── waiter/
+│   ├── kitchen/
+│   └── admin/
+│
+├── assets/
+│
+├── components/
+│   ├── common/
+│   ├── customer/
+│   ├── waiter/
+│   ├── kitchen/
+│   └── admin/
+│
+├── hooks/
+│
+├── layouts/
+│
+├── pages/
+│   ├── customer/
+│   ├── waiter/
+│   ├── kitchen/
+│   └── admin/
+│
+├── routes/
+│
+├── store/
+│
+├── styles/
+│
+├── types/
+│
+├── utils/
+│
+├── App.tsx
+│
+└── main.tsx

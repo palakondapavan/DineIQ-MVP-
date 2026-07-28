@@ -1,0 +1,60 @@
+Backend/
+│
+├── app/
+│
+├── api/
+│   └── router.py
+│
+├── core/
+│   ├── config.py
+│   ├── security.py
+│   └── constants.py
+│
+├── models/
+│   ├── category.py
+│   ├── menu_item.py
+│   ├── menu_variant.py
+│   ├── restaurant_table.py
+│   ├── customer_session.py
+│   ├── staff.py
+│   ├── order.py
+│   ├── order_item.py
+│   ├── bill.py
+│   └── payment.py
+│
+├── schemas/
+│   ├── category.py
+│   ├── menu_item.py
+│   ├── menu_variant.py
+│   ├── restaurant_table.py
+│   ├── customer_session.py
+│   ├── staff.py
+│   ├── order.py
+│   ├── order_item.py
+│   ├── bill.py
+│   └── payment.py
+│
+├── services/
+│   ├── category_service.py
+│   ├── menu_item_service.py
+│   ├── menu_variant_service.py
+│   ├── restaurant_table_service.py
+│   ├── customer_session_service.py
+│   ├── staff_service.py
+│   ├── order_service.py
+│   ├── bill_service.py
+│   └── payment_service.py
+│
+├── routers/
+│   ├── category.py
+│   ├── menu_item.py
+│   ├── menu_variant.py
+│   ├── restaurant_table.py
+│   ├── customer_session.py
+│   ├── staff.py
+│   ├── order.py
+│   ├── bill.py
+│   └── payment.py
+│
+├── database.py
+└── main.py

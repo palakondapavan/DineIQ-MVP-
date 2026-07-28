@@ -1,0 +1,88 @@
+                     RESTAURANT MANAGEMENT SYSTEM
+
+                          ADMIN PANEL
+                               │
+       ┌───────────────────────┼────────────────────────┐
+       │                       │                        │
+       ▼                       ▼                        ▼
+ Categories                Menu                 Restaurant
+ Management              Management               Setup
+       │                     │                      │
+       ▼                     ▼                      ▼
+ Menu Items           Menu Variants           Restaurant Tables
+
+                               │
+────────────────────────────────────────────────────────────────────
+
+                       CUSTOMER MODULE
+                               │
+                               ▼
+                       Scan QR Code
+                               │
+                               ▼
+                    Customer Session
+                               │
+                               ▼
+                       Digital Menu
+                               │
+                               ▼
+                          Shopping Cart
+                               │
+                               ▼
+                          Place Order
+
+────────────────────────────────────────────────────────────────────
+
+                        WAITER MODULE
+                               │
+                               ▼
+                      Pending Orders
+                               │
+                               ▼
+                        Accept Order
+                               │
+                               ▼
+                         Serve Order
+
+────────────────────────────────────────────────────────────────────
+
+                        KITCHEN MODULE
+                               │
+                               ▼
+                        Accepted Orders
+                               │
+                               ▼
+                         Preparing
+                               │
+                               ▼
+                            Ready
+
+────────────────────────────────────────────────────────────────────
+
+                        BILLING MODULE
+                               │
+                               ▼
+                       Generate Bill
+                               │
+                               ▼
+                    GST + Discounts
+                               │
+                               ▼
+                        Grand Total
+
+────────────────────────────────────────────────────────────────────
+
+                        PAYMENT MODULE
+                               │
+                ┌──────────────┼──────────────┐
+                ▼              ▼              ▼
+              Cash            UPI            Card
+                               │
+                               ▼
+                         Payment Success
+                               │
+                               ▼
+                      Close Customer Session
+                               │
+                               ▼
+                    Table Available Again

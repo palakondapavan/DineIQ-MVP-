@@ -1,0 +1,27 @@
+Restaurant Management System
+
+│
+
+├── Authentication
+
+├── Dashboard
+
+├── Employee Management
+
+├── Table Management
+
+├── QR Management
+
+├── Menu Management
+
+├── Cart
+
+├── Orders
+
+├── Kitchen
+
+├── Billing
+
+├── Payments
+
+└── Reports

@@ -1,0 +1,46 @@
+Customer sits at Table 5
+          │
+          ▼
+Scan Table QR Code
+          │
+          ▼
+Open Digital Menu
+          │
+          ▼
+Add Food to Cart
+          │
+          ▼
+Request Waiter
+          │
+          ▼
+Waiter Accepts Table
+          │
+          ▼
+Customer Places Order
+          │
+          ▼
+Chef Receives Order
+          │
+          ▼
+Chef Accepts Order
+          │
+          ▼
+Cooking
+          │
+          ▼
+Ready
+          │
+          ▼
+Waiter Serves Food
+          │
+          ▼
+Customer Requests Bill
+          │
+          ▼
+System Generates Bill
+          │
+          ▼
+Customer Pays Online
+          │
+          ▼
+Admin Sees Payment

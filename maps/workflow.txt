@@ -1,0 +1,57 @@
+Customer
+
+↓
+
+Scan QR
+
+↓
+
+Menu Opens
+
+↓
+
+Select Food
+
+↓
+
+Request Waiter
+
+↓
+
+Waiter Accepts
+
+↓
+
+Customer Places Order
+
+↓
+
+Kitchen Receives Order
+
+↓
+
+Chef Accepts
+
+↓
+
+Preparing
+
+↓
+
+Ready
+
+↓
+
+Waiter Serves
+
+↓
+
+Generate Bill
+
+↓
+
+Customer Pays
+
+↓
+
+Order Completed
