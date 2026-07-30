@@ -1,15 +1,12 @@
 import { motion } from "framer-motion";
-import { User, Phone, UtensilsCrossed, ArrowRight } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-
 import {
-  customerSchema,
-  type CustomerFormData,
-} from "../schemas/customer.schema";
-import { useTableRequest } from "../hooks/useTableRequest";
+  User,
+  Phone,
+  UtensilsCrossed,
+  ArrowRight,
+} from "lucide-react";
+
+import { useCustomerRequest } from "../hooks/useCustomerRequest";
 
 interface CustomerFormProps {
   tableId: number;
@@ -18,41 +15,13 @@ interface CustomerFormProps {
 export default function CustomerForm({
   tableId,
 }: CustomerFormProps) {
-  const navigate = useNavigate();
-
-  const { mutateAsync, isPending } = useTableRequest();
-
   const {
     register,
-    handleSubmit,
     formState: { errors },
-  } = useForm<CustomerFormData>({
-    resolver: zodResolver(customerSchema),
-    defaultValues: {
-      customer_name: "",
-      customer_mobile: "",
-    },
-  });
-
-  const onSubmit = async (values: CustomerFormData) => {
-    try {
-      const response = await mutateAsync({
-        tableId,
-        data: values,
-      });
-
-      toast.success(response.message || "Request sent successfully.");
-
-      navigate(`/menu/${tableId}`);
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.detail ||
-        error?.response?.data?.message ||
-        "Unable to send request.";
-
-      toast.error(message);
-    }
-  };
+    onSubmit,
+    isLoading,
+    serverError,
+  } = useCustomerRequest();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50 px-5 py-10">
@@ -86,7 +55,7 @@ export default function CustomerForm({
 
           {/* Form */}
           <form
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={onSubmit}
             className="space-y-6 p-8"
           >
             {/* Name */}
@@ -103,7 +72,7 @@ export default function CustomerForm({
 
                 <input
                   {...register("customer_name")}
-                  disabled={isPending}
+                  disabled={isLoading}
                   placeholder="Enter your full name"
                   className="h-14 w-full rounded-xl border border-slate-300 pl-12 pr-4 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                 />
@@ -130,7 +99,7 @@ export default function CustomerForm({
 
                 <input
                   {...register("customer_mobile")}
-                  disabled={isPending}
+                  disabled={isLoading}
                   placeholder="Enter your mobile number"
                   className="h-14 w-full rounded-xl border border-slate-300 pl-12 pr-4 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                 />
@@ -143,14 +112,21 @@ export default function CustomerForm({
               )}
             </div>
 
+            {/* Server Error */}
+            {serverError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {serverError}
+              </div>
+            )}
+
             {/* Continue */}
             <motion.button
               whileTap={{ scale: 0.98 }}
-              disabled={isPending}
+              disabled={isLoading}
               type="submit"
               className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-base font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isPending ? (
+              {isLoading ? (
                 <>
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Sending Request...

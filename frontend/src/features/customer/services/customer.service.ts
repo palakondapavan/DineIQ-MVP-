@@ -1,15 +1,13 @@
-import { customerApi } from "../api/customer.api";
-
+import { createTableRequest } from "../api/customer.api";
 import type {
-  TableRequest,
-  TableRequestResponse,
+  CreateCustomerRequest,
+  CreateCustomerResponse,
 } from "../types/customer.types";
 
 export const customerService = {
-  requestTable(
+  createRequest: (
     tableId: number,
-    data: TableRequest
-  ): Promise<TableRequestResponse> {
-    return customerApi.requestTable(tableId, data);
-  },
+    data: CreateCustomerRequest
+  ): Promise<CreateCustomerResponse> =>
+    createTableRequest(tableId, data),
 };

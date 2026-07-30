@@ -1,17 +1,11 @@
-export interface TableInfo {
-  id: number;
-  table_number: number;
-  status: string;
-  restaurant_name: string;
-}
-
-export interface TableRequest {
+export interface CreateCustomerRequest {
   customer_name: string;
   customer_mobile: string;
 }
 
-export interface TableRequestResponse {
-  success: boolean;
+export interface CreateCustomerResponse {
+  request_id: number;
+  table_id: number;
+  status: "PENDING";
   message: string;
-  request_id?: number;
 }

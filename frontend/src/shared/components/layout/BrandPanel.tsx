@@ -40,7 +40,10 @@ export default function BrandPanel({
             ease: "easeInOut",
           }}
           className="absolute -left-10 top-20 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl"
+          
         />
+
+        
 
         <motion.div
           animate={{

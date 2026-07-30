@@ -1,98 +1,110 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { loginSchema } from "../schemas/login.schema";
-import type { LoginFormData } from "../types/auth.types";
+import AppButton from "@/shared/components/ui/AppButton";
+import AppInput from "@/shared/components/ui/AppInput";
+import PageHeader from "@/shared/components/ui/PageHeader";
 
 import { useLogin } from "../hooks/useLogin";
 
-import { PasswordInput } from "./PasswordInput";
-import { RememberMe } from "./RememberMe";
-
-export function LoginForm() {
-  const { login, isLoading } = useLogin();
+export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
-    setError,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      rememberMe: false,
-    },
-  });
-
-  const onSubmit = async (data: LoginFormData) => {
-    try {
-      await login(data);
-    } catch (error) {
-      setError("root", {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Login failed",
-      });
-    }
-  };
+    errors,
+    isPending,
+    serverError,
+    onSubmit,
+  } = useLogin();
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-5"
-      noValidate
-    >
-      {/* Email / Mobile */}
-      <div>
-        <label
-          htmlFor="email"
-          className="mb-2 block text-sm font-medium text-slate-700"
-        >
-          Email or Mobile
-        </label>
-
-        <input
-          id="email"
-          type="text"
-          placeholder="Enter your email or mobile"
-          {...register("email")}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900"
-        />
-
-        {errors.email && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
-
-      {/* Password */}
-      <PasswordInput
-        register={register}
-        error={errors.password?.message}
+    <>
+      <PageHeader
+        badge="Staff Portal"
+        title="Welcome Back"
+        description="Sign in to continue managing your restaurant."
       />
 
-      {/* Remember Me */}
-      <RememberMe register={register} />
-
-      {/* Backend Error */}
-      {errors.root && (
-        <p className="text-center text-sm text-red-500">
-          {errors.root.message}
-        </p>
-      )}
-
-      {/* Submit */}
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full rounded-xl bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className="space-y-5"
       >
-        {isLoading ? "Signing In..." : "Sign In"}
-      </button>
-    </form>
+        <AppInput
+          label="Email"
+          type="email"
+          placeholder="Enter your email"
+          icon={User}
+          autoComplete="email"
+          error={errors.email?.message?.toString()}
+          {...register("email")}
+        />
+
+        <div className="relative">
+          <AppInput
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your password"
+            icon={Lock}
+            autoComplete="current-password"
+            error={errors.password?.message?.toString()}
+            {...register("password")}
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="
+              absolute
+              right-4
+              top-[54px]
+              text-slate-500
+              transition-colors
+              hover:text-indigo-600
+            "
+          >
+            {showPassword ? (
+              <EyeOff size={20} />
+            ) : (
+              <Eye size={20} />
+            )}
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              {...register("rememberMe")}
+            />
+            Remember me
+          </label>
+
+          <Link
+            to="/forgot-password"
+            className="text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+
+        {serverError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {serverError}
+          </div>
+        )}
+
+        <AppButton
+          type="submit"
+          loading={isPending}
+        >
+          Sign In
+        </AppButton>
+      </form>
+    </>
   );
 }

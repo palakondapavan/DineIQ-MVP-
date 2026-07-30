@@ -3,11 +3,23 @@ import { useParams } from "react-router-dom";
 import CustomerForm from "../components/CustomerForm";
 
 export default function CustomerEntryPage() {
-  const { tableId = "1" } = useParams();
+  const { tableId } = useParams<{ tableId: string }>();
 
-  return (
-    <main className="min-h-screen bg-background">
-      <CustomerForm tableId={Number(tableId)} />
-    </main>
-  );
+  if (!tableId || Number.isNaN(Number(tableId))) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="rounded-2xl border border-red-200 bg-white p-8 shadow-lg">
+          <h2 className="text-xl font-semibold text-red-600">
+            Invalid QR Code
+          </h2>
+
+          <p className="mt-2 text-slate-600">
+            The scanned table QR code is invalid.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return <CustomerForm tableId={Number(tableId)} />;
 }

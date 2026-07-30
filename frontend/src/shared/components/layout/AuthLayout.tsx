@@ -46,11 +46,12 @@ export default function AuthLayout({
           className="
             grid
             w-full
-            max-w-[1700px]
+            max-w-[1200px]
+            h-[760px]
             overflow-hidden
             rounded-[36px]
             border
-            border-slate-200/70
+            border-slate-100/80
             bg-white/60
             shadow-[0_35px_100px_rgba(15,23,42,0.08)]
             backdrop-blur-xl

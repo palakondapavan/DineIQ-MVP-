@@ -1,35 +1,18 @@
 import { api } from "@/shared/api/client";
 
 import type {
-  TableInfo,
-  TableRequest,
-  TableRequestResponse,
+  CreateCustomerRequest,
+  CreateCustomerResponse,
 } from "../types/customer.types";
 
-export const customerApi = {
-  /**
-   * Get table details from QR code
-   */
-  async getTable(tableId: number): Promise<TableInfo> {
-    const response = await api.get<TableInfo>(
-      `/tables/${tableId}`
-    );
+export const createTableRequest = async (
+  tableId: number,
+  data: CreateCustomerRequest
+): Promise<CreateCustomerResponse> => {
+  const response = await api.post<CreateCustomerResponse>(
+    `/table-requests/tables/${tableId}/request`,
+    data
+  );
 
-    return response.data;
-  },
-
-  /**
-   * Send customer table request
-   */
-  async requestTable(
-    tableId: number,
-    data: TableRequest
-  ): Promise<TableRequestResponse> {
-    const response = await api.post<TableRequestResponse>(
-      `/table-requests/tables/${tableId}/request`,
-      data
-    );
-
-    return response.data;
-  },
+  return response.data;
 };
