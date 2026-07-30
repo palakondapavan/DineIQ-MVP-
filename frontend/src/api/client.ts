@@ -1,10 +1,24 @@
 import axios from "axios";
 
-export const api = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/v1",
+import { env } from "@/config/env";
+import { tokenStorage } from "@/features/auth/utils/token";
+
+const apiClient = axios.create({
+  baseURL: env.API_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
-    Accept: "application/json",
   },
 });
+
+apiClient.interceptors.request.use((config) => {
+  const token = tokenStorage.getAccessToken();
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+export default apiClient;

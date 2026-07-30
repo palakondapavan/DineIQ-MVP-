@@ -1,5 +1,3 @@
-import AppRouter from "./routes/AppRouter";
+import App from "./app/App";
 
-export default function App() {
-  return <AppRouter />;
-}
+export default App;

@@ -67,35 +67,25 @@ def start_session(
 
 # --------------------------------------------------
 # Get Session By ID
-# ADMIN, MANAGER, WAITER
 # --------------------------------------------------
 
 @router.get(
-    "/{session_id}",
-    response_model=CustomerSessionResponse
+    "/customer/session/{session_id}",
+    response_model=CustomerSessionResponse,
 )
-def get_session(
+def get_customer_session(
     session_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            "ADMIN",
-            "MANAGER",
-            "WAITER"
-        )
-    )
 ):
-
     session = CustomerSessionService.get_session(
         db,
-        session_id
+        session_id,
     )
 
     if not session:
-
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Session not found."
+            status_code=404,
+            detail="Session not found",
         )
 
     return session
