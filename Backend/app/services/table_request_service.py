@@ -228,3 +228,14 @@ class TableRequestService:
             .filter(TableRequest.request_id == request_id)
             .first()
         )
+        
+    @staticmethod
+    def get_public_table(db: Session, table_id: int):
+        return (
+            db.query(RestaurantTable)
+            .filter(
+                RestaurantTable.table_id == table_id,
+                RestaurantTable.is_active == True
+            )
+            .first()
+        )

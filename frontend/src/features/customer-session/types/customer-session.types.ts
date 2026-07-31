@@ -6,7 +6,7 @@ export type CustomerSessionStatus =
   | "CANCELLED";
 
 export interface CustomerSession {
-  request_id: number;
+  session_id: number;
 
   table_id: number;
 
@@ -16,13 +16,7 @@ export interface CustomerSession {
 
   status: CustomerSessionStatus;
 
-  created_at: string;
+  started_at: string;
 
-  updated_at?: string;
-
-  accepted_at?: string;
-
-  rejected_at?: string;
-
-  completed_at?: string;
+  ended_at?: string | null;
 }

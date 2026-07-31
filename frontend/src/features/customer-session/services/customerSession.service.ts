@@ -7,9 +7,9 @@ import type {
 
 export const customerSessionService = {
   async getSession(
-    requestId: number
+    sessionId: number
   ): Promise<CustomerSession> {
-    return customerSessionApi.getSession(requestId);
+    return customerSessionApi.getSession(sessionId);
   },
 
   isPending(session: CustomerSession): boolean {
@@ -39,7 +39,7 @@ export const customerSessionService = {
   ): string {
     switch (status) {
       case "PENDING":
-        return "Waiting for Approval";
+        return "Waiting for Waiter Approval";
 
       case "ACCEPTED":
         return "Table Open";
@@ -51,7 +51,7 @@ export const customerSessionService = {
         return "Dining Completed";
 
       case "CANCELLED":
-        return "Cancelled";
+        return "Session Cancelled";
 
       default:
         return "Unknown";

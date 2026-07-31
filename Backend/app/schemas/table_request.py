@@ -29,3 +29,9 @@ class TableRequestResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        
+
+class PublicTableResponse(BaseModel):
+    table_id: int
+    table_number: str
+    status: str

@@ -13,7 +13,8 @@ from app.database import get_db
 
 from app.schemas.table_request import (
     TableRequestCreate,
-    TableRequestResponse
+    TableRequestResponse,
+    PublicTableResponse
 )
 
 from app.services.table_request_service import (
@@ -168,3 +169,22 @@ def get_request(
         )
 
     return request
+
+
+@router.get(
+    "/public/{table_id}",
+    response_model=PublicTableResponse
+)
+def get_public_table(
+    table_id: int,
+    db: Session = Depends(get_db),
+):
+    table = TableRequestService.get_public_table(db, table_id)
+
+    if not table:
+        raise HTTPException(
+            status_code=404,
+            detail="Table not found",
+        )
+
+    return table

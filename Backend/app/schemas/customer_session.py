@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+
 class CustomerSessionStart(BaseModel):
 
     table_id: int
@@ -32,3 +33,7 @@ class CustomerSessionResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+    
+class ResumeSessionRequest(BaseModel):
+    table_id: int
+    customer_mobile: str

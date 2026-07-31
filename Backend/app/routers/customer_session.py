@@ -11,7 +11,8 @@ from app.database import get_db
 
 from app.schemas.customer_session import (
     CustomerSessionStart,
-    CustomerSessionResponse
+    CustomerSessionResponse,
+    ResumeSessionRequest
 )
 
 from app.services.customer_session_service import (
@@ -63,6 +64,30 @@ def start_session(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+        
+        
+        
+@router.post(
+    "/resume",
+    response_model=CustomerSessionResponse,
+)
+def resume_session(
+    request: ResumeSessionRequest,
+    db: Session = Depends(get_db),
+):
+    session = CustomerSessionService.resume_session(
+        db,
+        request.table_id,
+        request.customer_mobile,
+    )
+
+    if not session:
+        raise HTTPException(
+            status_code=404,
+            detail="No active session found",
+        )
+
+    return session
 
 
 # --------------------------------------------------

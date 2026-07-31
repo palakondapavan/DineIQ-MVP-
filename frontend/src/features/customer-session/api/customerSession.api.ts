@@ -4,10 +4,10 @@ import type { CustomerSession } from "../types";
 
 export const customerSessionApi = {
   async getSession(
-    requestId: number
+    sessionId: number
   ): Promise<CustomerSession> {
     const { data } = await api.get(
-      `/table-requests/${requestId}`
+      `/sessions/customer/session/${sessionId}`
     );
 
     return data;

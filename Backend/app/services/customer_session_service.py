@@ -135,3 +135,23 @@ class CustomerSessionService:
         db.refresh(session)
 
         return session
+    
+    
+    @staticmethod
+    def resume_session(
+        db: Session,
+        table_id: int,
+        customer_mobile: str
+    ):
+
+        return (
+            db.query(CustomerSession)
+            .filter(
+                and_(
+                    CustomerSession.table_id == table_id,
+                    CustomerSession.customer_mobile == customer_mobile,
+                    CustomerSession.status == "ACTIVE"
+                )
+            )
+            .first()
+        )
