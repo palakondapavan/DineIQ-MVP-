@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import WaitingBanner from "../components/WaitingBanner";
@@ -7,28 +8,49 @@ import MenuSearch from "../components/Menu/MenuSearch";
 import CategoryTabs from "../components/Menu/CategoryTabs";
 import MenuGrid from "../components/Menu/MenuGrid";
 
-import { useCustomerSession } from "../hooks/useCustomerSession";
 import { useCustomerMenu } from "../hooks/useCustomerMenu";
-import { useCart } from "../hooks/useCart";
-
 import { useRequestMonitor } from "../hooks/useRequestMonitor";
+import { useActiveSession } from "../hooks/useActiveSession";
+
 import { sessionStorage } from "../utils/sessionStorage";
+
+import { useCart } from "@/features/cart/hooks/useCart";
 
 export default function CustomerMenuPage() {
   const { requestId } = useParams<{
     requestId: string;
   }>();
 
-  const id = Number(requestId);
-
   const stored = sessionStorage.load();
 
+  const [sessionId, setSessionId] =
+    useState<number | null>(
+      stored?.sessionId ?? null
+    );
+
+  /**
+   * Monitor request until waiter accepts.
+   */
   const monitor = useRequestMonitor({
-    requestId: id,
+    requestId: Number(requestId),
+
+    onSessionCreated: (id) => {
+      setSessionId(id);
+    },
   });
 
+  /**
+   * Active Session
+   */
+  const {
+    session,
+    hasSession,
+    canPlaceOrders,
+  } = useActiveSession(sessionId);
 
-
+  /**
+   * Menu
+   */
   const {
     categories,
     menuItems,
@@ -37,15 +59,13 @@ export default function CustomerMenuPage() {
     selectedCategory,
     setSelectedCategory,
     isLoading: menuLoading,
+    isError: menuError,
   } = useCustomerMenu();
 
-  const {
-    cart,
-    addItem,
-    increase,
-    decrease,
-    totalItems,
-  } = useCart();
+  /**
+   * Cart
+   */
+  const { totalItems } = useCart();
 
   if (menuLoading) {
     return (
@@ -57,18 +77,40 @@ export default function CustomerMenuPage() {
     );
   }
 
+  if (menuError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="rounded-2xl bg-white p-8 shadow-lg">
+          <h2 className="text-xl font-semibold text-red-600">
+            Unable to load menu
+          </h2>
+
+          <p className="mt-2 text-slate-500">
+            Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100">
-      {stored?.sessionId === null &&
-      monitor.isPending && (
+      {!hasSession &&
+        monitor.isPending && (
           <WaitingBanner />
-      )}
+        )}
 
       <main className="mx-auto max-w-7xl space-y-6 p-6">
         <MenuHeader
-            customerName="Guest"
-            tableId={stored?.tableId ?? 0}
+          customerName={
+            session?.customer_name ??
+            "Guest"
+          }
+          tableId={
+            session?.table_id ??
+            stored?.tableId ??
+            0
+          }
         />
 
         <MenuSearch
@@ -78,40 +120,40 @@ export default function CustomerMenuPage() {
 
         <CategoryTabs
           categories={categories}
-          selectedCategory={selectedCategory}
-          onSelect={setSelectedCategory}
+          selectedCategory={
+            selectedCategory
+          }
+          onSelect={
+            setSelectedCategory
+          }
         />
 
         <MenuGrid
           items={menuItems}
-          cart={cart}
-          onAdd={addItem}
-          onIncrease={increase}
-          onDecrease={decrease}
         />
 
-        <div className="fixed bottom-6 right-6">
+        {/* Floating Cart */}
+        <div className="fixed bottom-24 right-6">
           <button
             disabled={totalItems === 0}
-            className="rounded-full bg-indigo-600 px-6 py-4 font-semibold text-white shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full bg-indigo-600 px-6 py-4 font-semibold text-white shadow-xl transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Cart ({totalItems})
           </button>
         </div>
 
-        <div className="sticky bottom-0 mt-8 rounded-2xl bg-white p-5 shadow-xl">
+        {/* Place Order */}
+        <div className="sticky bottom-0 rounded-2xl bg-white p-5 shadow-xl">
           <button
             disabled={
-              stored?.sessionId === null ||
+              !canPlaceOrders ||
               totalItems === 0
-          }
-            className="h-14 w-full rounded-xl bg-green-600 text-lg font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+            }
+            className="h-14 w-full rounded-xl bg-green-600 text-lg font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            {
-              stored?.sessionId
-                  ? "Place Order"
-                  : "Waiting for Waiter..."
-          }
+            {canPlaceOrders
+              ? "Place Order"
+              : "Waiting for Waiter..."}
           </button>
         </div>
       </main>

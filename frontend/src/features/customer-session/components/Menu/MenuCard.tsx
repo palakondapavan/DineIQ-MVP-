@@ -6,27 +6,41 @@ import {
   Plus,
 } from "lucide-react";
 
+import { useCart } from "@/features/cart/hooks/useCart";
+import { useVariant } from "@/features/variant/hooks/useVariant";
+
 import type { MenuItem } from "../../types/customerMenu.types";
 
 interface MenuCardProps {
   item: MenuItem;
-
-  quantity: number;
-
-  onAdd: (itemId: number) => void;
-
-  onIncrease: (itemId: number) => void;
-
-  onDecrease: (itemId: number) => void;
 }
 
 export default function MenuCard({
   item,
-  quantity,
-  onAdd,
-  onIncrease,
-  onDecrease,
 }: MenuCardProps) {
+  const { open } = useVariant();
+
+  const {
+    items,
+    increaseQuantity,
+    decreaseQuantity,
+  } = useCart();
+
+  const cartItems = items.filter(
+    (cartItem) =>
+      cartItem.item_id === item.item_id
+  );
+
+  const totalQuantity = cartItems.reduce(
+    (sum, cartItem) => sum + cartItem.quantity,
+    0
+  );
+
+  const hasMultipleVariants =
+    cartItems.length > 1;
+
+  const cartItem = cartItems[0] ?? null;
+
   const price =
     item.variants.length > 0
       ? item.variants[0].price
@@ -99,32 +113,48 @@ export default function MenuCard({
             ₹{price}
           </span>
 
-          {!item.is_available ? null : quantity === 0 ? (
+          {!item.is_available ? null : totalQuantity === 0 ? (
             <button
-              onClick={() =>
-                onAdd(item.item_id)
-              }
+              onClick={() => open(item)}
               className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white hover:bg-indigo-700"
             >
               <Plus size={18} />
               Add
             </button>
+          ) : hasMultipleVariants ? (
+            <button
+              className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700"
+            >
+              {totalQuantity} in Cart
+            </button>
           ) : (
             <div className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2">
               <button
-                onClick={() =>
-                  onDecrease(item.item_id)
-                }
+                onClick={() => {
+                  if (!cartItem) return;
+
+                  decreaseQuantity(
+                    cartItem.item_id,
+                    cartItem.variant_id
+                  );
+                }}
               >
                 <Minus size={18} />
               </button>
 
-              <span>{quantity}</span>
+              <span className="min-w-6 text-center">
+                {totalQuantity}
+              </span>
 
               <button
-                onClick={() =>
-                  onIncrease(item.item_id)
-                }
+                onClick={() => {
+                  if (!cartItem) return;
+
+                  increaseQuantity(
+                    cartItem.item_id,
+                    cartItem.variant_id
+                  );
+                }}
               >
                 <Plus size={18} />
               </button>

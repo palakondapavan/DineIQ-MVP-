@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 
@@ -8,11 +8,19 @@ import { sessionStorage } from "../utils/sessionStorage";
 
 interface UseRequestMonitorProps {
   requestId: number;
+
+  onSessionCreated: (
+    sessionId: number
+  ) => void;
 }
 
 export function useRequestMonitor({
   requestId,
+  onSessionCreated,
 }: UseRequestMonitorProps) {
+  const [resumeCompleted, setResumeCompleted] =
+    useState(false);
+
   const stored = sessionStorage.load();
 
   const requestQuery = useQuery({
@@ -23,7 +31,10 @@ export function useRequestMonitor({
 
     enabled:
       requestId > 0 &&
-      stored?.sessionId === null,
+      !!stored &&
+      stored.sessionId === null,
+
+    staleTime: 0,
 
     refetchInterval: ({ state }) => {
       const request = state.data;
@@ -36,12 +47,12 @@ export function useRequestMonitor({
         ? 3000
         : false;
     },
-
-    staleTime: 0,
   });
 
   useEffect(() => {
-    async function resumeSession() {
+    async function resume() {
+      if (resumeCompleted) return;
+
       if (!stored) return;
 
       const request = requestQuery.data;
@@ -49,10 +60,6 @@ export function useRequestMonitor({
       if (!request) return;
 
       if (request.status !== "ACCEPTED") {
-        return;
-      }
-
-      if (stored.sessionId) {
         return;
       }
 
@@ -68,12 +75,11 @@ export function useRequestMonitor({
           sessionId: session.session_id,
         });
 
-        /**
-         * Refresh page state.
-         * We'll remove this in the next phase
-         * using React Query cache.
-         */
-        window.location.reload();
+        onSessionCreated(
+          session.session_id
+        );
+
+        setResumeCompleted(true);
       } catch (error) {
         console.error(
           "Resume session failed",
@@ -82,21 +88,30 @@ export function useRequestMonitor({
       }
     }
 
-    resumeSession();
-  }, [requestQuery.data]);
+    resume();
+  }, [
+    requestQuery.data,
+    stored,
+    resumeCompleted,
+    onSessionCreated,
+  ]);
 
   return {
     request: requestQuery.data,
 
-    isLoading: requestQuery.isLoading,
+    isLoading:
+      requestQuery.isLoading,
 
     isPending:
-      requestQuery.data?.status === "PENDING",
+      requestQuery.data?.status ===
+      "PENDING",
 
     isAccepted:
-      requestQuery.data?.status === "ACCEPTED",
+      requestQuery.data?.status ===
+      "ACCEPTED",
 
     isRejected:
-      requestQuery.data?.status === "REJECTED",
+      requestQuery.data?.status ===
+      "REJECTED",
   };
 }

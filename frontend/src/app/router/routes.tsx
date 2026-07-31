@@ -7,6 +7,7 @@ import CustomerMenuPage from "@/features/customer-session/pages/CustomerMenuPage
 import PendingPage from "@/features/customer-session/pages/PendingPage";
 import ResumeSessionPage from "@/features/customer-session/pages/ResumeSessionPage";
 import SessionBootstrapPage from "@/features/customer-session/pages/SessionBootstrapPage";
+import CustomerLayout from "@/features/customer-session/layouts/CustomerLayout";
 
 import WelcomePage from "@/pages/WelcomePage";
 import NotFoundPage from "@/pages/NotFoundPage";
@@ -38,12 +39,18 @@ export const routes: RouteObject[] = [
   },
 
   /**
-   * Existing customer session
+   * Customer Module
    */
   {
-    path: "/customer/menu/:requestId",
-    element: <CustomerMenuPage />,
+    element: <CustomerLayout />,
+    children: [
+      {
+        path: "/customer/menu/:requestId",
+        element: <CustomerMenuPage />,
+      },
+    ],
   },
+
   /**
    * Resume Existing Session
    */

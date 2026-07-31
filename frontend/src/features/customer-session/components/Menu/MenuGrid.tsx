@@ -4,22 +4,10 @@ import type { MenuItem } from "../../types/customerMenu.types";
 
 interface MenuGridProps {
   items: MenuItem[];
-
-  cart: Record<number, number>;
-
-  onAdd: (itemId: number) => void;
-
-  onIncrease: (itemId: number) => void;
-
-  onDecrease: (itemId: number) => void;
 }
 
 export default function MenuGrid({
   items,
-  cart,
-  onAdd,
-  onIncrease,
-  onDecrease,
 }: MenuGridProps) {
   if (items.length === 0) {
     return (
@@ -49,10 +37,6 @@ export default function MenuGrid({
         <MenuCard
           key={item.item_id}
           item={item}
-          quantity={cart[item.item_id] ?? 0}
-          onAdd={onAdd}
-          onIncrease={onIncrease}
-          onDecrease={onDecrease}
         />
       ))}
     </div>
