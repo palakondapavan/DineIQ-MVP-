@@ -21,6 +21,20 @@ class OrderItemResponse(BaseModel):
 
     variant_id: int
 
+    # -------- Variant Details --------
+
+    variant_name: str
+
+    # -------- Menu Item Details --------
+
+    item_name: str
+
+    image_url: str | None = None
+
+    food_type: str
+
+    # -------- Order Details --------
+
     quantity: int
 
     price_at_order: float

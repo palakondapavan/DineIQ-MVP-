@@ -78,3 +78,5 @@ class MenuVariant(Base):
             f"variant_name='{self.variant_name}', "
             f"price={self.price})>"
         )
+        
+        

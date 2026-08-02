@@ -7,6 +7,7 @@ from sqlalchemy import (
     Text,
     ForeignKey
 )
+
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -41,7 +42,7 @@ class OrderItem(Base):
     )
 
     price_at_order = Column(
-        Numeric(10,2),
+        Numeric(10, 2),
         nullable=False
     )
 
@@ -55,11 +56,15 @@ class OrderItem(Base):
         Text,
         nullable=True
     )
-    
+
     rejection_reason = Column(
         Text,
         nullable=True
     )
+
+    # ----------------------------------------
+    # Relationships
+    # ----------------------------------------
 
     order = relationship(
         "Order",
@@ -67,5 +72,27 @@ class OrderItem(Base):
     )
 
     variant = relationship(
-        "MenuVariant"
+        "MenuVariant",
+        back_populates="order_items"
     )
+
+    # ----------------------------------------
+    # Computed Properties
+    # Used by OrderItemResponse schema
+    # ----------------------------------------
+
+    @property
+    def variant_name(self):
+        return self.variant.variant_name
+
+    @property
+    def item_name(self):
+        return self.variant.menu_item.item_name
+
+    @property
+    def image_url(self):
+        return self.variant.menu_item.image_url
+
+    @property
+    def food_type(self):
+        return self.variant.menu_item.food_type

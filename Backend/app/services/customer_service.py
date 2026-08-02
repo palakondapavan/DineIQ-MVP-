@@ -1,10 +1,19 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import (
+    Session,
+    joinedload,
+)
+
+from app.models.menu_variant import MenuVariant
+
+
 
 from app.models.customer_session import CustomerSession
 from app.models.order import Order
 from app.models.order_item import OrderItem
 
 from app.schemas.order_status import OrderStatus
+
+from app.schemas.order_item_status import OrderItemStatus
 
 
 class CustomerService:
@@ -38,14 +47,21 @@ class CustomerService:
         session_id: int
     ):
 
-        return (
+        orders = (
             db.query(Order)
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
             .filter(
                 Order.session_id == session_id
             )
             .order_by(Order.order_id)
             .all()
         )
+
+        return orders
         
         
     # ----------------------------------------
@@ -60,6 +76,11 @@ class CustomerService:
 
         orders = (
             db.query(Order)
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
             .filter(
                 Order.session_id == session_id,
                 Order.status.in_([
@@ -77,6 +98,12 @@ class CustomerService:
             items = []
 
             for item in order.items:
+
+                if (
+                    item.item_status
+                    == OrderItemStatus.CANCELLED.value
+                ):
+                    continue
 
                 items.append({
 
@@ -139,15 +166,47 @@ class CustomerService:
 
         order = item.order
 
-        if order.status not in [
-            OrderStatus.PLACED.value,
-            OrderStatus.ACCEPTED.value
+        if item.item_status not in [
+            OrderItemStatus.PLACED.value,
+            OrderItemStatus.ACCEPTED.value,
         ]:
             raise ValueError(
-                "Order can no longer be modified."
+                "This item can no longer be modified."
             )
 
         if quantity <= 0:
+
+            item.item_status = (
+                OrderItemStatus.CANCELLED.value
+            )
+
+            remaining_items = (
+                db.query(OrderItem)
+                .filter(
+                    OrderItem.order_id == order.order_id,
+                    OrderItem.item_status != OrderItemStatus.CANCELLED.value
+                )
+                .count()
+            )
+
+            if remaining_items == 0:
+
+                order.status = (
+                    OrderStatus.CANCELLED.value
+                )
+
+                order.total_amount = 0
+
+            else:
+
+                CustomerService.recalculate_order_total(
+                    db,
+                    order.order_id
+                )
+
+            db.commit()
+
+            return item
             raise ValueError(
                 "Quantity must be greater than zero."
             )
@@ -162,6 +221,8 @@ class CustomerService:
         db.commit()
 
         db.refresh(item)
+        
+        db.refresh(order)
 
         return item
 
@@ -190,26 +251,28 @@ class CustomerService:
 
         order = item.order
 
-        if order.status not in [
-            OrderStatus.PLACED.value,
-            OrderStatus.ACCEPTED.value
+        if item.item_status not in [
+            OrderItemStatus.PLACED.value,
+            OrderItemStatus.ACCEPTED.value,
         ]:
             raise ValueError(
-                "Order can no longer be modified."
+                "This item can no longer be removed."
             )
 
-        db.delete(item)
+        item.item_status = (
+            OrderItemStatus.CANCELLED.value
+        )
 
         db.flush()
 
         remaining_items = (
             db.query(OrderItem)
             .filter(
-                OrderItem.order_id == order.order_id
+                OrderItem.order_id == order.order_id,
+                OrderItem.item_status != OrderItemStatus.CANCELLED.value
             )
             .count()
         )
-
         if remaining_items == 0:
 
             order.status = OrderStatus.CANCELLED.value
@@ -241,6 +304,11 @@ class CustomerService:
 
         order = (
             db.query(Order)
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
             .filter(
                 Order.order_id == order_id
             )
@@ -260,7 +328,17 @@ class CustomerService:
                 "Order cannot be cancelled."
             )
 
-        order.status = OrderStatus.CANCELLED.value
+        for item in order.items:
+            
+            item.item_status = (
+                OrderItemStatus.CANCELLED.value
+            )
+
+        order.status = (
+            OrderStatus.CANCELLED.value
+        )
+        
+        order.total_amount = 0
 
         db.commit()
 
@@ -290,6 +368,12 @@ class CustomerService:
 
         for item in order.items:
 
+            if (
+                item.item_status
+                == OrderItemStatus.CANCELLED.value
+            ):
+                continue
+
             total += (
                 float(item.price_at_order)
                 * item.quantity
@@ -298,6 +382,8 @@ class CustomerService:
         order.total_amount = total
 
         db.flush()
+
+
         
         
     # ----------------------------------------
@@ -312,6 +398,11 @@ class CustomerService:
 
         orders = (
             db.query(Order)
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
             .filter(
                 Order.session_id == session_id,
                 Order.status.in_([
@@ -320,7 +411,9 @@ class CustomerService:
                     OrderStatus.SERVED.value
                 ])
             )
-            .order_by(Order.order_id.desc())
+            .order_by(
+                Order.order_id.desc()
+            )
             .all()
         )
 
@@ -331,6 +424,12 @@ class CustomerService:
             items = []
 
             for item in order.items:
+
+                if (
+                    item.item_status
+                    == OrderItemStatus.CANCELLED.value
+                ):
+                    continue
 
                 items.append({
 

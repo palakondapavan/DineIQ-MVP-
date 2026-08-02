@@ -102,7 +102,7 @@ export default function MenuCard({
         )}
 
         {hasVariants && (
-          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
+          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full  bg-violet-600 px-3 py-1 text-xs font-semibold text-white">
             <Flame size={12} />
             {item.variants.length} Variants
           </div>

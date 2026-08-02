@@ -16,6 +16,8 @@ import { sessionStorage } from "../utils/sessionStorage";
 import FloatingCartButton from "@/features/cart/components/FloatingCartButton";
 import CartDrawer from "@/features/cart/components/CartDrawer";
 
+import OrdersBottomBar  from "@/features/orders/components/OrdersBottomBar";
+
 export default function CustomerMenuPage() {
   const { requestId } = useParams<{
     requestId: string;
@@ -127,6 +129,10 @@ export default function CustomerMenuPage() {
           items={menuItems}
         />
       </main>
+
+      {/* Floating Orders FAB */}
+      <OrdersBottomBar  />
+
 
       {/* Floating Cart FAB */}
       <FloatingCartButton />

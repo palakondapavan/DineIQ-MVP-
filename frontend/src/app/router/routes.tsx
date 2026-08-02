@@ -12,6 +12,9 @@ import CustomerLayout from "@/features/customer-session/layouts/CustomerLayout";
 import WelcomePage from "@/pages/WelcomePage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
+
+import CustomerOrdersPage from "@/features/orders/pages/CustomerOrdersPage";
+
 export const routes: RouteObject[] = [
   {
     path: "/",
@@ -48,6 +51,10 @@ export const routes: RouteObject[] = [
         path: "/customer/menu/:requestId",
         element: <CustomerMenuPage />,
       },
+      {
+        path: "/customer/orders",
+        element: <CustomerOrdersPage />,
+      },
     ],
   },
 
@@ -71,4 +78,6 @@ export const routes: RouteObject[] = [
     path: "*",
     element: <NotFoundPage />,
   },
+
+
 ];

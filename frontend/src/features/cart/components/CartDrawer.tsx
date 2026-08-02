@@ -149,7 +149,7 @@ export default function CartDrawer() {
               z-50
               hidden
               h-screen
-              w-[460px]
+              w-460px
               flex-col
               border-l
               bg-slate-50

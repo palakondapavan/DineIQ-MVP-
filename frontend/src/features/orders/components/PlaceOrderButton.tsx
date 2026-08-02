@@ -62,7 +62,7 @@ export default function PlaceOrderButton() {
       close();
 
       navigate(
-        `/customer/orders/${response.order_id}`
+        `/customer/orders`
       );
     } catch (error) {
       console.error(error);

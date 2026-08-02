@@ -94,6 +94,26 @@ def get_all_orders(
 
 
 # -------------------------------------------------------
+# Get Orders By Session
+# CUSTOMER
+# -------------------------------------------------------
+
+@router.get(
+    "/session/{session_id}",
+    response_model=list[OrderResponse]
+)
+def get_orders_by_session(
+    session_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return OrderService.get_orders_by_session(
+        db,
+        session_id
+    )
+
+
+# -------------------------------------------------------
 # Get Order By ID
 # ADMIN, MANAGER, WAITER, CHEF
 # -------------------------------------------------------
@@ -345,3 +365,5 @@ def serve_order_item(
             status_code=400,
             detail=str(e)
         )
+        
+        

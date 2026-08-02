@@ -1,5 +1,7 @@
-from sqlalchemy.orm import Session
-
+from sqlalchemy.orm import (
+    Session,
+    joinedload,
+)
 from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.customer_session import CustomerSession
@@ -11,6 +13,33 @@ from app.schemas.order_status import OrderStatus
 from app.schemas.order_item_status import OrderItemStatus
 
 from app.schemas.fulfillment_type import FulfillmentType
+
+from sqlalchemy.orm import joinedload
+
+from app.mappers.order_mapper import OrderMapper
+
+
+@staticmethod
+def get_orders_by_session(
+    db: Session,
+    session_id: int
+):
+
+    return (
+        db.query(Order)
+        .options(
+            joinedload(Order.items)
+            .joinedload(OrderItem.variant)
+            .joinedload(MenuVariant.menu_item)
+        )
+        .filter(
+            Order.session_id == session_id
+        )
+        .order_by(
+            Order.order_id.desc()
+        )
+        .all()
+    )
 
 
 
@@ -156,7 +185,7 @@ class OrderService:
 
             db.refresh(new_order)
 
-            return new_order
+            return OrderMapper.to_response(new_order)
 
         except Exception:
 
@@ -173,16 +202,54 @@ class OrderService:
         db: Session
     ):
 
-        return (
-
+        orders = (
             db.query(Order)
-
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
             .order_by(
                 Order.order_id.desc()
             )
-
             .all()
         )
+
+        return [
+            OrderMapper.to_response(order)
+            for order in orders
+        ]
+        
+    # -----------------------------------------
+    # Get Orders By Session
+    # -----------------------------------------
+
+    @staticmethod
+    def get_orders_by_session(
+        db: Session,
+        session_id: int
+    ):
+
+        orders = (
+            db.query(Order)
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
+            .filter(
+                Order.session_id == session_id
+            )
+            .order_by(
+                Order.order_id.desc()
+            )
+            .all()
+        )
+
+        return [
+            OrderMapper.to_response(order)
+            for order in orders
+        ]
 
     # -----------------------------------------
     # Get Order By ID
@@ -195,13 +262,15 @@ class OrderService:
     ):
 
         return (
-
             db.query(Order)
-
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
             .filter(
                 Order.order_id == order_id
             )
-
             .first()
         )
 
@@ -217,13 +286,15 @@ class OrderService:
     ):
 
         order = (
-
             db.query(Order)
-
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
             .filter(
                 Order.order_id == order_id
             )
-
             .first()
         )
 
@@ -252,7 +323,7 @@ class OrderService:
 
         db.refresh(order)
 
-        return order
+        return OrderMapper.to_response(order)
     
     
     # -----------------------------------------
@@ -269,6 +340,11 @@ class OrderService:
 
             order = (
                 db.query(Order)
+                .options(
+                    joinedload(Order.items)
+                    .joinedload(OrderItem.variant)
+                    .joinedload(MenuVariant.menu_item)
+                )
                 .filter(
                     Order.order_id == order_id
                 )
@@ -350,7 +426,7 @@ class OrderService:
 
             db.refresh(order)
 
-            return order
+            return OrderMapper.to_response(order)
 
         except Exception:
 
@@ -369,13 +445,15 @@ class OrderService:
     ):
 
         order = (
-
             db.query(Order)
-
+            .options(
+                joinedload(Order.items)
+                .joinedload(OrderItem.variant)
+                .joinedload(MenuVariant.menu_item)
+            )
             .filter(
                 Order.order_id == order_id
             )
-
             .first()
         )
 
@@ -393,7 +471,7 @@ class OrderService:
 
         db.refresh(order)
 
-        return order
+        return OrderMapper.to_response(order)
     
     
     
@@ -476,6 +554,20 @@ class OrderService:
             )
 
             order = order_item.order
+            
+            
+            order = (
+                db.query(Order)
+                .options(
+                    joinedload(Order.items)
+                    .joinedload(OrderItem.variant)
+                    .joinedload(MenuVariant.menu_item)
+                )
+                .filter(
+                    Order.order_id == order.order_id
+                )
+                .first()
+            )
 
             # ---------------------------------
             # Get Active Order Items
@@ -526,7 +618,7 @@ class OrderService:
 
             db.refresh(order)
 
-            return order
+            return OrderMapper.to_response(order)
 
         except Exception:
 
@@ -581,9 +673,20 @@ class OrderService:
 
             db.commit()
 
-            db.refresh(order_item.order)
+            order = (
+                db.query(Order)
+                .options(
+                    joinedload(Order.items)
+                    .joinedload(OrderItem.variant)
+                    .joinedload(MenuVariant.menu_item)
+                )
+                .filter(
+                    Order.order_id == order_item.order.order_id
+                )
+                .first()
+            )
 
-            return order_item.order
+            return OrderMapper.to_response(order)
 
         except Exception:
 
@@ -641,13 +744,20 @@ class OrderService:
 
             db.commit()
 
-            db.refresh(order_item.order)
+            order = (
+                db.query(Order)
+                .options(
+                    joinedload(Order.items)
+                    .joinedload(OrderItem.variant)
+                    .joinedload(MenuVariant.menu_item)
+                )
+                .filter(
+                    Order.order_id == order_item.order.order_id
+                )
+                .first()
+            )
 
-            return {
-                "success": True,
-                "order_id": order_item.order.order_id,
-                "status": order_item.order.status
-            }
+            return OrderMapper.to_response(order)
 
         except Exception:
 
