@@ -1,6 +1,10 @@
 import { Outlet } from "react-router-dom";
 
 import { CartProvider } from "@/features/cart/context/CartProvider";
+
+import { CartDrawerProvider } from "@/features/cart/context/CartDrawerProvider";
+
+
 import { VariantProvider } from "@/features/variant/context/VariantProvider";
 
 import VariantBottomSheet from "@/features/variant/components/VariantBottomSheet";
@@ -8,11 +12,14 @@ import VariantBottomSheet from "@/features/variant/components/VariantBottomSheet
 export default function CustomerLayout() {
   return (
     <CartProvider>
-      <VariantProvider>
-        <Outlet />
+        <CartDrawerProvider>
+            <VariantProvider>
+                <Outlet />
+                
 
-        <VariantBottomSheet />
-      </VariantProvider>
+                <VariantBottomSheet />
+            </VariantProvider>
+      </CartDrawerProvider>
     </CartProvider>
   );
 }

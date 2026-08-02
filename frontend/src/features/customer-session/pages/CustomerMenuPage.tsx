@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import WaitingBanner from "../components/WaitingBanner";
@@ -14,29 +13,31 @@ import { useActiveSession } from "../hooks/useActiveSession";
 
 import { sessionStorage } from "../utils/sessionStorage";
 
-import { useCart } from "@/features/cart/hooks/useCart";
+import FloatingCartButton from "@/features/cart/components/FloatingCartButton";
+import CartDrawer from "@/features/cart/components/CartDrawer";
 
 export default function CustomerMenuPage() {
   const { requestId } = useParams<{
     requestId: string;
   }>();
 
+  /**
+   * Session
+   */
   const stored = sessionStorage.load();
 
-  const [sessionId, setSessionId] =
-    useState<number | null>(
-      stored?.sessionId ?? null
-    );
+  const sessionId =
+    stored?.sessionId ?? null;
 
   /**
-   * Monitor request until waiter accepts.
+   * Waiter Approval Monitor
    */
   const monitor = useRequestMonitor({
     requestId: Number(requestId),
 
-    onSessionCreated: (id) => {
-      setSessionId(id);
-    },
+    enabled: sessionId === null,
+
+    onSessionCreated: () => {},
   });
 
   /**
@@ -45,11 +46,10 @@ export default function CustomerMenuPage() {
   const {
     session,
     hasSession,
-    canPlaceOrders,
   } = useActiveSession(sessionId);
 
   /**
-   * Menu
+   * Customer Menu
    */
   const {
     categories,
@@ -61,11 +61,6 @@ export default function CustomerMenuPage() {
     isLoading: menuLoading,
     isError: menuError,
   } = useCustomerMenu();
-
-  /**
-   * Cart
-   */
-  const { totalItems } = useCart();
 
   if (menuLoading) {
     return (
@@ -100,7 +95,7 @@ export default function CustomerMenuPage() {
           <WaitingBanner />
         )}
 
-      <main className="mx-auto max-w-7xl space-y-6 p-6">
+      <main className="mx-auto max-w-7xl space-y-6 p-6 pb-10">
         <MenuHeader
           customerName={
             session?.customer_name ??
@@ -131,32 +126,13 @@ export default function CustomerMenuPage() {
         <MenuGrid
           items={menuItems}
         />
-
-        {/* Floating Cart */}
-        <div className="fixed bottom-24 right-6">
-          <button
-            disabled={totalItems === 0}
-            className="rounded-full bg-indigo-600 px-6 py-4 font-semibold text-white shadow-xl transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Cart ({totalItems})
-          </button>
-        </div>
-
-        {/* Place Order */}
-        <div className="sticky bottom-0 rounded-2xl bg-white p-5 shadow-xl">
-          <button
-            disabled={
-              !canPlaceOrders ||
-              totalItems === 0
-            }
-            className="h-14 w-full rounded-xl bg-green-600 text-lg font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
-            {canPlaceOrders
-              ? "Place Order"
-              : "Waiting for Waiter..."}
-          </button>
-        </div>
       </main>
+
+      {/* Floating Cart FAB */}
+      <FloatingCartButton />
+
+      {/* Cart Drawer */}
+      <CartDrawer />
     </div>
   );
 }

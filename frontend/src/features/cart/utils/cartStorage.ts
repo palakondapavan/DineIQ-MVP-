@@ -1,18 +1,31 @@
 import type { CartItem } from "../types/cart.types";
 
-const STORAGE_KEY = "customer_cart";
+const STORAGE_PREFIX = "customer_cart";
+
+function getStorageKey(sessionId: number | null) {
+  if (!sessionId) {
+    return `${STORAGE_PREFIX}_guest`;
+  }
+
+  return `${STORAGE_PREFIX}_${sessionId}`;
+}
 
 export const cartStorage = {
-  save(items: CartItem[]) {
+  save(
+    sessionId: number | null,
+    items: CartItem[]
+  ) {
     localStorage.setItem(
-      STORAGE_KEY,
+      getStorageKey(sessionId),
       JSON.stringify(items)
     );
   },
 
-  load(): CartItem[] {
+  load(
+    sessionId: number | null
+  ): CartItem[] {
     const raw = localStorage.getItem(
-      STORAGE_KEY
+      getStorageKey(sessionId)
     );
 
     if (!raw) {
@@ -26,9 +39,9 @@ export const cartStorage = {
     }
   },
 
-  clear() {
+  clear(sessionId: number | null) {
     localStorage.removeItem(
-      STORAGE_KEY
+      getStorageKey(sessionId)
     );
   },
 };

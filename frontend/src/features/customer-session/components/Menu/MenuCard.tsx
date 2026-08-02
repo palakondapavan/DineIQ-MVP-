@@ -4,6 +4,7 @@ import {
   Leaf,
   Minus,
   Plus,
+  ShoppingBag,
 } from "lucide-react";
 
 import { useCart } from "@/features/cart/hooks/useCart";
@@ -21,29 +22,41 @@ export default function MenuCard({
   const { open } = useVariant();
 
   const {
-    items,
     increaseQuantity,
     decreaseQuantity,
+
+    getItemQuantity,
+    getVariantCount,
+    hasItem,
+    items,
   } = useCart();
 
-  const cartItems = items.filter(
-    (cartItem) =>
-      cartItem.item_id === item.item_id
-  );
+  const hasVariants =
+    item.variants.length > 1;
 
-  const totalQuantity = cartItems.reduce(
-    (sum, cartItem) => sum + cartItem.quantity,
-    0
-  );
+  const totalQuantity =
+    getItemQuantity(item.item_id);
 
-  const hasMultipleVariants =
-    cartItems.length > 1;
+  const variantCount =
+    getVariantCount(item.item_id);
 
-  const cartItem = cartItems[0] ?? null;
+  const itemExists =
+    hasItem(item.item_id);
 
-  const price =
+  const cartItem =
+    items.find(
+      (itemInCart) =>
+        itemInCart.item_id ===
+        item.item_id
+    ) ?? null;
+
+  const startingPrice =
     item.variants.length > 0
-      ? item.variants[0].price
+      ? Math.min(
+          ...item.variants.map(
+            (variant) => variant.price
+          )
+        )
       : 0;
 
   return (
@@ -88,7 +101,7 @@ export default function MenuCard({
           </div>
         )}
 
-        {item.variants.length > 1 && (
+        {hasVariants && (
           <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
             <Flame size={12} />
             {item.variants.length} Variants
@@ -103,29 +116,74 @@ export default function MenuCard({
             {item.item_name}
           </h3>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 line-clamp-2 text-sm text-slate-500">
             {item.description}
           </p>
         </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-indigo-600">
-            ₹{price}
-          </span>
+        {/* Price */}
+        <div>
+          {hasVariants && (
+            <p className="text-xs text-slate-400">
+              Starts From
+            </p>
+          )}
 
-          {!item.is_available ? null : totalQuantity === 0 ? (
+          <h3 className="text-2xl font-bold text-indigo-600">
+            ₹{startingPrice}
+          </h3>
+        </div>
+
+        {/* Variant Summary */}
+        {hasVariants && itemExists && (
+          <div className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <ShoppingBag
+                size={16}
+                className="text-indigo-600"
+              />
+
+              <div>
+                <p className="text-sm font-semibold text-indigo-700">
+                  {variantCount} Variant
+                  {variantCount > 1
+                    ? "s"
+                    : ""}{" "}
+                  Added
+                </p>
+
+                <p className="text-xs text-indigo-500">
+                  {totalQuantity} Item
+                  {totalQuantity > 1
+                    ? "s"
+                    : ""}{" "}
+                  in Cart
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-end">
+          {!item.is_available ? null : hasVariants ? (
             <button
               onClick={() => open(item)}
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white hover:bg-indigo-700"
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white transition hover:bg-indigo-700"
+            >
+              <Plus size={18} />
+
+              {itemExists
+                ? "Add More"
+                : "Customize"}
+            </button>
+          ) : totalQuantity === 0 ? (
+            <button
+              onClick={() => open(item)}
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white transition hover:bg-indigo-700"
             >
               <Plus size={18} />
               Add
-            </button>
-          ) : hasMultipleVariants ? (
-            <button
-              className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700"
-            >
-              {totalQuantity} in Cart
             </button>
           ) : (
             <div className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2">
@@ -142,7 +200,7 @@ export default function MenuCard({
                 <Minus size={18} />
               </button>
 
-              <span className="min-w-6 text-center">
+              <span className="min-w-6 text-center font-semibold">
                 {totalQuantity}
               </span>
 

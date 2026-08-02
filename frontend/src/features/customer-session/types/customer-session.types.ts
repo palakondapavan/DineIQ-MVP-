@@ -1,6 +1,6 @@
 export type CustomerSessionStatus =
   | "PENDING"
-  | "ACCEPTED"
+  | "ACTIVE"
   | "REJECTED"
   | "COMPLETED"
   | "CANCELLED";

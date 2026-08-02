@@ -9,6 +9,12 @@ import { sessionStorage } from "../utils/sessionStorage";
 interface UseRequestMonitorProps {
   requestId: number;
 
+  /**
+   * Poll only while customer
+   * is waiting for waiter.
+   */
+  enabled: boolean;
+
   onSessionCreated: (
     sessionId: number
   ) => void;
@@ -16,6 +22,7 @@ interface UseRequestMonitorProps {
 
 export function useRequestMonitor({
   requestId,
+  enabled,
   onSessionCreated,
 }: UseRequestMonitorProps) {
   const [resumeCompleted, setResumeCompleted] =
@@ -23,6 +30,10 @@ export function useRequestMonitor({
 
   const stored = sessionStorage.load();
 
+  /**
+   * Poll request status only while
+   * customer is waiting.
+   */
   const requestQuery = useQuery({
     queryKey: ["table-request", requestId],
 
@@ -30,6 +41,7 @@ export function useRequestMonitor({
       tableRequestService.getRequest(requestId),
 
     enabled:
+      enabled &&
       requestId > 0 &&
       !!stored &&
       stored.sessionId === null,
@@ -37,6 +49,10 @@ export function useRequestMonitor({
     staleTime: 0,
 
     refetchInterval: ({ state }) => {
+      if (!enabled) {
+        return false;
+      }
+
       const request = state.data;
 
       if (!request) {
@@ -50,6 +66,10 @@ export function useRequestMonitor({
   });
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     async function resume() {
       if (resumeCompleted) return;
 
@@ -71,6 +91,9 @@ export function useRequestMonitor({
               stored.customerMobile,
           });
 
+        /**
+         * Persist session forever.
+         */
         sessionStorage.update({
           sessionId: session.session_id,
         });
@@ -90,6 +113,7 @@ export function useRequestMonitor({
 
     resume();
   }, [
+    enabled,
     requestQuery.data,
     stored,
     resumeCompleted,
@@ -99,12 +123,12 @@ export function useRequestMonitor({
   return {
     request: requestQuery.data,
 
-    isLoading:
-      requestQuery.isLoading,
+    isLoading: requestQuery.isLoading,
 
     isPending:
+      enabled &&
       requestQuery.data?.status ===
-      "PENDING",
+        "PENDING",
 
     isAccepted:
       requestQuery.data?.status ===

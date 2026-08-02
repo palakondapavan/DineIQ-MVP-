@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -10,18 +11,32 @@ import { useCartContext } from "@/features/cart/context/CartProvider";
 import type { MenuItem } from "@/features/customer-session/types/customerMenu.types";
 import type { Variant } from "../types/variant.types";
 
+interface SelectedVariant {
+  variant: Variant;
+
+  quantity: number;
+}
+
 interface VariantContextValue {
   isOpen: boolean;
 
   menuItem: MenuItem | null;
 
-  selectedVariant: Variant | null;
+  selectedVariants: SelectedVariant[];
 
   open: (item: MenuItem) => void;
 
   close: () => void;
 
-  selectVariant: (variant: Variant) => void;
+  increase: (variant: Variant) => void;
+
+  decrease: (variant: Variant) => void;
+
+  getQuantity: (variantId: number) => number;
+
+  totalItems: number;
+
+  totalPrice: number;
 
   confirm: () => void;
 }
@@ -47,12 +62,15 @@ export function VariantProvider({
     useState<MenuItem | null>(null);
 
   const [
-    selectedVariant,
-    setSelectedVariant,
-  ] = useState<Variant | null>(null);
+    selectedVariants,
+    setSelectedVariants,
+  ] = useState<SelectedVariant[]>([]);
 
   function open(item: MenuItem) {
-    // Single variant → directly add to cart
+    /**
+     * Single variant
+     * Direct add.
+     */
     if (item.variants.length === 1) {
       const variant = item.variants[0];
 
@@ -71,14 +89,9 @@ export function VariantProvider({
       return;
     }
 
-    // Multiple variants → open selector
     setMenuItem(item);
 
-    setSelectedVariant(
-      item.variants.length > 0
-        ? item.variants[0]
-        : null
-    );
+    setSelectedVariants([]);
 
     setIsOpen(true);
   }
@@ -88,34 +101,125 @@ export function VariantProvider({
 
     setMenuItem(null);
 
-    setSelectedVariant(null);
+    setSelectedVariants([]);
   }
 
-  function selectVariant(
+  function increase(
     variant: Variant
   ) {
-    setSelectedVariant(variant);
+    setSelectedVariants(
+      (previous) => {
+        const index =
+          previous.findIndex(
+            (item) =>
+              item.variant.variant_id ===
+              variant.variant_id
+          );
+
+        if (index === -1) {
+          return [
+            ...previous,
+            {
+              variant,
+              quantity: 1,
+            },
+          ];
+        }
+
+        const updated = [...previous];
+
+        updated[index] = {
+          ...updated[index],
+          quantity:
+            updated[index].quantity + 1,
+        };
+
+        return updated;
+      }
+    );
   }
 
+  function decrease(
+    variant: Variant
+  ) {
+    setSelectedVariants(
+      (previous) =>
+        previous
+          .map((item) =>
+            item.variant.variant_id ===
+            variant.variant_id
+              ? {
+                  ...item,
+                  quantity:
+                    item.quantity - 1,
+                }
+              : item
+          )
+          .filter(
+            (item) => item.quantity > 0
+          )
+    );
+  }
+
+  function getQuantity(
+    variantId: number
+  ) {
+    return (
+      selectedVariants.find(
+        (item) =>
+          item.variant.variant_id ===
+          variantId
+      )?.quantity ?? 0
+    );
+  }
+
+  const totalItems = useMemo(
+    () =>
+      selectedVariants.reduce(
+        (sum, item) =>
+          sum + item.quantity,
+        0
+      ),
+    [selectedVariants]
+  );
+
+  const totalPrice = useMemo(
+    () =>
+      selectedVariants.reduce(
+        (sum, item) =>
+          sum +
+          item.variant.price *
+            item.quantity,
+        0
+      ),
+    [selectedVariants]
+  );
+
   function confirm() {
-    if (!menuItem || !selectedVariant) {
+    if (!menuItem) {
       return;
     }
 
-    addItem({
-      item_id: menuItem.item_id,
-      item_name: menuItem.item_name,
-      image_url: menuItem.image_url,
-      variant_id:
-        selectedVariant.variant_id,
-      variant_name:
-        selectedVariant.variant_name,
-      price: selectedVariant.price,
-      quantity: 1,
-      notes: "",
-      is_available:
-        menuItem.is_available,
-    });
+    selectedVariants.forEach(
+      ({ variant, quantity }) => {
+        addItem({
+          item_id: menuItem.item_id,
+          item_name:
+            menuItem.item_name,
+          image_url:
+            menuItem.image_url,
+          variant_id:
+            variant.variant_id,
+          variant_name:
+            variant.variant_name,
+          price: variant.price,
+          quantity,
+          notes: "",
+          is_available:
+            menuItem.is_available,
+        });
+      }
+    );
 
     close();
   }
@@ -125,10 +229,20 @@ export function VariantProvider({
       value={{
         isOpen,
         menuItem,
-        selectedVariant,
+        selectedVariants,
+
         open,
         close,
-        selectVariant,
+
+        increase,
+        decrease,
+
+        getQuantity,
+
+        totalItems,
+
+        totalPrice,
+
         confirm,
       }}
     >

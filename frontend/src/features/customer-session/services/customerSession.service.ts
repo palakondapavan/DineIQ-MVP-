@@ -17,7 +17,7 @@ export const customerSessionService = {
   },
 
   isAccepted(session: CustomerSession): boolean {
-    return session.status === "ACCEPTED";
+    return session.status === "ACTIVE";
   },
 
   isRejected(session: CustomerSession): boolean {
@@ -31,7 +31,7 @@ export const customerSessionService = {
   canPlaceOrders(
     session: CustomerSession
   ): boolean {
-    return session.status === "ACCEPTED";
+    return session.status === "ACTIVE";
   },
 
   getStatusLabel(
@@ -41,7 +41,7 @@ export const customerSessionService = {
       case "PENDING":
         return "Waiting for Waiter Approval";
 
-      case "ACCEPTED":
+      case "ACTIVE":
         return "Table Open";
 
       case "REJECTED":

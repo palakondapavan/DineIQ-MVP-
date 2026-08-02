@@ -1,115 +1,189 @@
-import { X } from "lucide-react";
-
-import CartItem from "./CartItem";
-import EmptyCart from "./EmptyCart";
-import CartSummary from "./CartSummary";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect } from "react";
 
 import { useCart } from "../hooks/useCart";
+import { useCartDrawer } from "../hooks/useCartDrawer";
 
-interface CartDrawerProps {
-  open: boolean;
-  onClose: () => void;
-}
+import CartHeader from "./CartHeader";
+import CartSummary from "./CartSummary";
+import EmptyCart from "./EmptyCart";
+import CartList from "./CartList";
 
-export default function CartDrawer({
-  open,
-  onClose,
-}: CartDrawerProps) {
-  const { items, isEmpty } = useCart();
+import PlaceOrderButton from "@/features/orders/components/PlaceOrderButton";
+
+export default function CartDrawer() {
+  const {
+    items,
+    totalItems,
+  } = useCart();
+
+  const {
+    isOpen,
+    close,
+  } = useCartDrawer();
+
+  /**
+   * Close drawer using ESC
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleKeyDown(
+      event: KeyboardEvent
+    ) {
+      if (event.key === "Escape") {
+        close();
+      }
+    }
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () =>
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+  }, [isOpen, close]);
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        onClick={onClose}
-        className={`
-          fixed inset-0 z-40 bg-black/40
-          transition-opacity duration-300
-          ${
-            open
-              ? "opacity-100 visible"
-              : "opacity-0 invisible"
-          }
-        `}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.2,
+            }}
+            onClick={close}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          />
 
-      {/* Drawer */}
-      <aside
-        className={`
-          fixed
-          bottom-0
-          right-0
-          z-50
-          flex
-          h-[90vh]
-          w-full
-          flex-col
-          rounded-t-3xl
-          bg-white
-          shadow-2xl
-          transition-transform
-          duration-300
-
-          md:top-0
-          md:h-screen
-          md:w-[430px]
-          md:rounded-none
-
-          ${
-            open
-              ? "translate-y-0"
-              : "translate-y-full md:translate-x-full md:translate-y-0"
-          }
-        `}
-      >
-        {/* Handle (Mobile) */}
-        <div className="flex justify-center py-3 md:hidden">
-          <div className="h-1.5 w-12 rounded-full bg-slate-300" />
-        </div>
-
-        {/* Header */}
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-5">
-          <div>
-            <h2 className="text-xl font-bold">
-              Your Cart
-            </h2>
-
-            <p className="text-sm text-slate-500">
-              Review your order
-            </p>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="rounded-lg p-2 transition hover:bg-slate-100"
+          {/* Mobile Drawer */}
+          <motion.div
+            initial={{
+              y: "100%",
+            }}
+            animate={{
+              y: 0,
+            }}
+            exit={{
+              y: "100%",
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 320,
+              damping: 30,
+            }}
+            className="
+              fixed
+              bottom-0
+              left-0
+              right-0
+              z-50
+              flex
+              h-[90vh]
+              flex-col
+              rounded-t-3xl
+              bg-slate-50
+              shadow-2xl
+              md:hidden
+            "
           >
-            <X size={22} />
-          </button>
-        </header>
-
-        {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto px-5 py-5">
-          {isEmpty ? (
-            <EmptyCart />
-          ) : (
-            <div className="space-y-4">
-              {items.map((item) => (
-                <CartItem
-                  key={`${item.item_id}-${item.variant_id}`}
-                  item={item}
-                />
-              ))}
+            {/* Drag Handle */}
+            <div className="flex justify-center py-3">
+              <div className="h-1.5 w-14 rounded-full bg-slate-300" />
             </div>
-          )}
-        </div>
 
-        {/* Summary */}
-        {!isEmpty && (
-          <footer className="border-t bg-white p-5">
-            <CartSummary />
-          </footer>
-        )}
-      </aside>
-    </>
+            <CartHeader
+              totalItems={totalItems}
+              onClose={close}
+            />
+
+            <div className="flex-1 overflow-y-auto">
+              {items.length === 0 ? (
+                <EmptyCart
+                  onClose={close}
+                />
+              ) : (
+                <CartList />
+              )}
+            </div>
+
+            {items.length > 0 && (
+              <div className="border-t bg-white p-6">
+                <CartSummary />
+
+                <div className="mt-6">
+                  <PlaceOrderButton />
+                </div>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Desktop Drawer */}
+          <motion.div
+            initial={{
+              x: "100%",
+            }}
+            animate={{
+              x: 0,
+            }}
+            exit={{
+              x: "100%",
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 320,
+              damping: 30,
+            }}
+            className="
+              fixed
+              right-0
+              top-0
+              z-50
+              hidden
+              h-screen
+              w-[460px]
+              flex-col
+              border-l
+              bg-slate-50
+              shadow-2xl
+              md:flex
+            "
+          >
+            <CartHeader
+              totalItems={totalItems}
+              onClose={close}
+            />
+
+            <div className="flex-1 overflow-y-auto">
+              {items.length === 0 ? (
+                <EmptyCart
+                  onClose={close}
+                />
+              ) : (
+                <CartList />
+              )}
+            </div>
+
+            {items.length > 0 && (
+              <div className="border-t bg-white p-6">
+                <CartSummary />
+
+                <div className="mt-6">
+                  <PlaceOrderButton />
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

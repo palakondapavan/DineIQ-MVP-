@@ -1,15 +1,25 @@
-import { Check, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+} from "framer-motion";
+import { X } from "lucide-react";
 
 import { useVariant } from "../hooks/useVariant";
+import VariantQuantityCard from "./VariantQuantityCard";
 
 export default function VariantBottomSheet() {
   const {
     isOpen,
     menuItem,
-    selectedVariant,
     close,
-    selectVariant,
+
+    increase,
+    decrease,
+    getQuantity,
+
+    totalItems,
+    totalPrice,
+
     confirm,
   } = useVariant();
 
@@ -44,6 +54,9 @@ export default function VariantBottomSheet() {
               left-0
               right-0
               z-50
+              flex
+              max-h-[90vh]
+              flex-col
               rounded-t-3xl
               bg-white
               shadow-2xl
@@ -51,7 +64,8 @@ export default function VariantBottomSheet() {
               md:left-auto
               md:right-6
               md:bottom-6
-              md:w-[420px]
+              md:h-[720px]
+              md:w-[460px]
               md:rounded-3xl
             "
           >
@@ -61,14 +75,14 @@ export default function VariantBottomSheet() {
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between border-b px-6 pb-5">
+            <div className="flex items-start justify-between border-b px-6 pb-5">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-2xl font-bold text-slate-900">
                   {menuItem.item_name}
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  Choose your preferred variant
+                  Choose one or more variants
                 </p>
               </div>
 
@@ -80,63 +94,50 @@ export default function VariantBottomSheet() {
               </button>
             </div>
 
-            {/* Variants */}
-            <div className="space-y-3 p-6">
-              {menuItem.variants.map((variant) => {
-                const active =
-                  selectedVariant?.variant_id ===
-                  variant.variant_id;
-
-                return (
-                  <button
+            {/* Variant List */}
+            <div className="flex-1 space-y-4 overflow-y-auto p-6">
+              {menuItem.variants.map(
+                (variant) => (
+                  <VariantQuantityCard
                     key={variant.variant_id}
-                    onClick={() =>
-                      selectVariant(variant)
-                    }
-                    className={`
-                      flex
-                      w-full
-                      items-center
-                      justify-between
-                      rounded-2xl
-                      border
-                      p-4
-                      text-left
-                      transition
-
-                      ${
-                        active
-                          ? "border-indigo-600 bg-indigo-50"
-                          : "border-slate-200 hover:border-indigo-300"
-                      }
-                    `}
-                  >
-                    <div>
-                      <h3 className="font-semibold">
-                        {variant.variant_name}
-                      </h3>
-
-                      <p className="mt-1 text-sm text-slate-500">
-                        ₹{variant.price}
-                      </p>
-                    </div>
-
-                    {active && (
-                      <Check
-                        className="text-indigo-600"
-                        size={22}
-                      />
+                    variant={variant}
+                    quantity={getQuantity(
+                      variant.variant_id
                     )}
-                  </button>
-                );
-              })}
+                    onIncrease={increase}
+                    onDecrease={decrease}
+                  />
+                )
+              )}
             </div>
 
-            {/* Footer */}
-            <div className="border-t p-6">
+            {/* Sticky Footer */}
+            <div className="border-t bg-white p-6 shadow-[0_-6px_20px_rgba(0,0,0,0.06)]">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">
+                    Items Selected
+                  </p>
+
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {totalItems}
+                  </h3>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-sm text-slate-500">
+                    Total Amount
+                  </p>
+
+                  <h3 className="text-3xl font-bold text-indigo-600">
+                    ₹{totalPrice}
+                  </h3>
+                </div>
+              </div>
+
               <button
                 onClick={confirm}
-                disabled={!selectedVariant}
+                disabled={totalItems === 0}
                 className="
                   h-14
                   w-full
@@ -151,9 +152,13 @@ export default function VariantBottomSheet() {
                   disabled:bg-slate-300
                 "
               >
-                {selectedVariant
-                  ? `Add • ₹${selectedVariant.price}`
-                  : "Select Variant"}
+                {totalItems === 0
+                  ? "Select Variants"
+                  : `Add ${totalItems} Item${
+                      totalItems > 1
+                        ? "s"
+                        : ""
+                    } • ₹${totalPrice}`}
               </button>
             </div>
           </motion.div>

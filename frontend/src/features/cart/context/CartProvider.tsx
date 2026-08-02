@@ -1,19 +1,20 @@
-import { useEffect } from "react";
-import { cartStorage } from "../utils/cartStorage";
-
-
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 
+import { cartStorage } from "../utils/cartStorage";
+
 import type {
   AddToCartPayload,
   CartItem,
 } from "../types/cart.types";
+
+import { sessionStorage } from "@/features/customer-session/utils/sessionStorage";
 
 interface CartContextValue {
   items: CartItem[];
@@ -51,6 +52,26 @@ interface CartContextValue {
 
   clearCart: () => void;
 
+  /**
+   * Helpers
+   */
+  getItemQuantity: (
+    itemId: number
+  ) => number;
+
+  getVariantCount: (
+    itemId: number
+  ) => number;
+
+  getVariantQuantity: (
+    itemId: number,
+    variantId: number
+  ) => number;
+
+  hasItem: (
+    itemId: number
+  ) => boolean;
+
   totalItems: number;
 
   subtotal: number;
@@ -70,13 +91,45 @@ interface Props {
 export function CartProvider({
   children,
 }: Props) {
-    const [items, setItems] = useState<CartItem[]>(
-        () => cartStorage.load()
-        );
-        useEffect(() => {
-            cartStorage.save(items);
-            }, [items]);
+  /**
+   * Current Session
+   */
+  const customerSession =
+    sessionStorage.load();
 
+  const sessionId =
+    customerSession?.sessionId ?? null;
+
+  /**
+   * Cart
+   */
+  const [items, setItems] =
+    useState<CartItem[]>(() =>
+      cartStorage.load(sessionId)
+    );
+
+  /**
+   * Load cart when session changes
+   */
+  useEffect(() => {
+    setItems(
+      cartStorage.load(sessionId)
+    );
+  }, [sessionId]);
+
+  /**
+   * Persist cart
+   */
+  useEffect(() => {
+    cartStorage.save(
+      sessionId,
+      items
+    );
+  }, [sessionId, items]);
+
+  /**
+   * Add Item
+   */
   const addItem = (
     payload: AddToCartPayload & {
       item_name: string;
@@ -87,13 +140,14 @@ export function CartProvider({
     }
   ) => {
     setItems((previous) => {
-      const index = previous.findIndex(
-        (item) =>
-          item.item_id ===
-            payload.item_id &&
-          item.variant_id ===
-            payload.variant_id
-      );
+      const index =
+        previous.findIndex(
+          (item) =>
+            item.item_id ===
+              payload.item_id &&
+            item.variant_id ===
+              payload.variant_id
+        );
 
       if (index !== -1) {
         const updated = [...previous];
@@ -112,8 +166,10 @@ export function CartProvider({
         ...previous,
         {
           item_id: payload.item_id,
-          item_name: payload.item_name,
-          image_url: payload.image_url,
+          item_name:
+            payload.item_name,
+          image_url:
+            payload.image_url,
           variant_id:
             payload.variant_id,
           variant_name:
@@ -130,6 +186,9 @@ export function CartProvider({
     });
   };
 
+  /**
+   * Increase Quantity
+   */
   const increaseQuantity = (
     itemId: number,
     variantId: number | null = null
@@ -137,7 +196,8 @@ export function CartProvider({
     setItems((previous) =>
       previous.map((item) =>
         item.item_id === itemId &&
-        item.variant_id === variantId
+        item.variant_id ===
+          variantId
           ? {
               ...item,
               quantity:
@@ -148,6 +208,9 @@ export function CartProvider({
     );
   };
 
+  /**
+   * Decrease Quantity
+   */
   const decreaseQuantity = (
     itemId: number,
     variantId: number | null = null
@@ -166,11 +229,15 @@ export function CartProvider({
             : item
         )
         .filter(
-          (item) => item.quantity > 0
+          (item) =>
+            item.quantity > 0
         )
     );
   };
 
+  /**
+   * Remove Item
+   */
   const removeItem = (
     itemId: number,
     variantId: number | null = null
@@ -179,7 +246,8 @@ export function CartProvider({
       previous.filter(
         (item) =>
           !(
-            item.item_id === itemId &&
+            item.item_id ===
+              itemId &&
             item.variant_id ===
               variantId
           )
@@ -187,6 +255,9 @@ export function CartProvider({
     );
   };
 
+  /**
+   * Update Notes
+   */
   const updateNotes = (
     itemId: number,
     variantId: number | null,
@@ -206,10 +277,81 @@ export function CartProvider({
     );
   };
 
+  /**
+   * Clear Cart
+   */
   const clearCart = () => {
+    cartStorage.clear(
+      sessionId
+    );
+
     setItems([]);
   };
 
+  /**
+   * Total quantity of all variants
+   * for one menu item.
+   */
+  const getItemQuantity = (
+    itemId: number
+  ) => {
+    return items
+      .filter(
+        (item) =>
+          item.item_id === itemId
+      )
+      .reduce(
+        (sum, item) =>
+          sum + item.quantity,
+        0
+      );
+  };
+
+  /**
+   * Number of variants
+   * selected for one item.
+   */
+  const getVariantCount = (
+    itemId: number
+  ) => {
+    return items.filter(
+      (item) =>
+        item.item_id === itemId
+    ).length;
+  };
+
+  /**
+   * Quantity of one variant.
+   */
+  const getVariantQuantity = (
+    itemId: number,
+    variantId: number
+  ) => {
+    return (
+      items.find(
+        (item) =>
+          item.item_id === itemId &&
+          item.variant_id ===
+            variantId
+      )?.quantity ?? 0
+    );
+  };
+
+  /**
+   * Menu item exists?
+   */
+  const hasItem = (
+    itemId: number
+  ) => {
+    return items.some(
+      (item) =>
+        item.item_id === itemId
+    );
+  };
+
+  /**
+   * Totals
+   */
   const totalItems = useMemo(
     () =>
       items.reduce(
@@ -225,7 +367,8 @@ export function CartProvider({
       items.reduce(
         (sum, item) =>
           sum +
-          item.price * item.quantity,
+          item.price *
+            item.quantity,
         0
       ),
     [items]
@@ -245,6 +388,14 @@ export function CartProvider({
     updateNotes,
 
     clearCart,
+
+    getItemQuantity,
+
+    getVariantCount,
+
+    getVariantQuantity,
+
+    hasItem,
 
     totalItems,
 
