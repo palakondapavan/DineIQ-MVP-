@@ -18,6 +18,8 @@ import {
 
 import OrderStatusChip from "./OrderStatusChip";
 
+import { useConfirmDialog } from "@/shared/components/confirm-dialog";
+
 interface Props {
   item: CustomerOrderItem;
 }
@@ -25,8 +27,7 @@ interface Props {
 export default function OrderItem({
   item,
 }: Props) {
-
-    const editable =
+  const editable =
     item.item_status === "PLACED" ||
     item.item_status === "ACCEPTED";
 
@@ -35,6 +36,9 @@ export default function OrderItem({
 
   const deleteItem =
     useDeleteOrderItem();
+
+  const confirm =
+    useConfirmDialog();
 
   async function increaseQuantity() {
     try {
@@ -47,21 +51,32 @@ export default function OrderItem({
     }
   }
 
-    async function decreaseQuantity() {
+  async function decreaseQuantity() {
     try {
-        await updateItem.mutateAsync({
+      await updateItem.mutateAsync({
         itemId: item.order_item_id,
         quantity: item.quantity - 1,
-        });
+      });
     } catch (error) {
-        console.error(error);
+      console.error(error);
     }
-    }
+  }
 
   async function removeItem() {
-    const confirmed = window.confirm(
-      "Remove this item?"
-    );
+    const confirmed =
+      await confirm({
+        variant: "danger",
+
+        title: "Remove Item",
+
+        description: `Are you sure you want to remove "${item.item_name}" from your order?`,
+
+        confirmText:
+          "Remove Item",
+
+        cancelText:
+          "Keep Item",
+      });
 
     if (!confirmed) {
       return;
@@ -83,7 +98,10 @@ export default function OrderItem({
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
           {item.image_url ? (
             <img
-              src={item.image_url ?? undefined}
+              src={
+                item.image_url ??
+                undefined
+              }
               alt={item.item_name}
               className="h-full w-full object-cover"
             />
@@ -112,7 +130,8 @@ export default function OrderItem({
                 <div className="mt-2">
                   <span
                     className={`rounded-full px-2 py-1 text-xs font-medium ${
-                      item.food_type === "VEG"
+                      item.food_type ===
+                      "VEG"
                         ? "bg-green-100 text-green-700"
                         : "bg-red-100 text-red-700"
                     }`}
@@ -124,7 +143,9 @@ export default function OrderItem({
             </div>
 
             <OrderStatusChip
-              status={item.item_status}
+              status={
+                item.item_status
+              }
             />
           </div>
 
@@ -132,7 +153,9 @@ export default function OrderItem({
             {editable ? (
               <div className="flex items-center gap-3">
                 <button
-                  onClick={decreaseQuantity}
+                  onClick={
+                    decreaseQuantity
+                  }
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 transition hover:bg-slate-100"
                 >
                   <Minus size={16} />
@@ -143,7 +166,9 @@ export default function OrderItem({
                 </span>
 
                 <button
-                  onClick={increaseQuantity}
+                  onClick={
+                    increaseQuantity
+                  }
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 transition hover:bg-slate-100"
                 >
                   <Plus size={16} />
@@ -167,7 +192,9 @@ export default function OrderItem({
               <span className="font-semibold">
                 Note:
               </span>{" "}
-              {item.special_instruction}
+              {
+                item.special_instruction
+              }
             </div>
           )}
 

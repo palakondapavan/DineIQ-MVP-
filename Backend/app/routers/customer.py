@@ -14,6 +14,17 @@ from app.schemas.cart import CartOrderResponse
 from app.schemas.live_order import LiveOrderResponse
 
 
+from app.schemas.customer_bill import (
+    CustomerBillResponse,
+)
+
+from app.services.customer_bill_service import (
+    CustomerBillService,
+)
+
+from app.models.menu_variant import MenuVariant
+
+
 router = APIRouter(
     prefix="/customer",
     tags=["Customer"]
@@ -191,3 +202,59 @@ def get_live_orders(
         db,
         session_id
     )
+    
+    
+# ----------------------------------------
+# Customer Bill
+# ----------------------------------------
+
+@router.get(
+    "/bill/{session_id}",
+    response_model=CustomerBillResponse
+)
+def get_customer_bill(
+    session_id: int,
+    db: Session = Depends(get_db)
+):
+
+    try:
+
+        return CustomerBillService.get_or_generate_bill(
+            db,
+            session_id
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+
+# ----------------------------------------
+# Pay Customer Bill
+# ----------------------------------------
+
+@router.put(
+    "/bill/{bill_id}/pay",
+    response_model=CustomerBillResponse
+)
+def pay_customer_bill(
+    bill_id: int,
+    db: Session = Depends(get_db)
+):
+
+    try:
+
+        return CustomerBillService.pay_bill(
+            db,
+            bill_id
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )

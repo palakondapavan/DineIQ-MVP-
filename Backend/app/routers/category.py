@@ -31,6 +31,7 @@ router = APIRouter(
 )
 
 
+
 # --------------------------------------------------
 # Get All Categories
 # ADMIN, MANAGER, WAITER, CHEF, CASHIER
